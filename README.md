@@ -3,44 +3,57 @@
 
 ## Overview
 
-This project focuses on solving a logistics problem where deliveries need to be assigned to three agents in an efficient and balanced way. The goal is to distribute deliveries such that the total distance handled by each agent is as equal as possible, while also considering delivery priority.
+This project focuses on solving a logistics delivery optimization problem using decision analytics and optimization techniques. The objective is to assign deliveries to three agents such that the total distance handled by each agent is distributed as evenly as possible while also considering delivery priority.
 
-The system reads delivery data from a CSV file, applies multiple algorithms, compares their performance, and automatically selects the best one.
+The system reads delivery data from a CSV file, performs exploratory data analysis, applies multiple optimization algorithms, compares their performance, and selects the best algorithm based on decision metrics.
 
+This project demonstrates data analysis, optimization modeling, algorithm comparison, and decision justification, which are important in decision analytics and operational optimization problems.
 
+---
 
-## Problem Statement
+# Problem Statement
 
-Given a list of delivery locations with distance and priority:
+Given a list of delivery locations with distance and priority, the system must:
 
+* Read delivery data from CSV
+* Sort deliveries by priority and distance
 * Assign deliveries to 3 agents
-* Prioritize high priority deliveries
-* Ensure workload is balanced across agents
-* Generate a final delivery plan
+* Ensure nearly equal total distance per agent
+* Generate final delivery plan
+* Compare multiple algorithms and select the best approach
 
+The main objective is **minimizing workload imbalance among agents**.
 
+---
 
-## Input Format
+# Input Format
 
-The system expects a file named `input.csv` with the following columns:
+The system expects an `input.csv` file with the following columns:
 
 * LocationID
 * Distance
-* Priority (High, Medium, Low)
+* Priority (High / Medium / Low)
 
 Example:
 
+```
 LocationID,Distance,Priority
 L1,10,High
 L2,25,Medium
 L3,5,High
+L4,18,Low
+L5,12,Medium
+```
 
-## Project Structure
+---
 
+# Project Structure
+
+```
 ├── main.py
 ├── input.csv
-├── README.md
 ├── output.csv
+├── README.md
 ├── image.png
 ├── image-1.png
 ├── image-2.png
@@ -48,160 +61,180 @@ L3,5,High
 ├── image-4.png
 ├── image-5.png
 ├── image-6.png
+├── image-7.png
+├── image-8.png
+```
 
-## How the System Works
+---
 
-### 1. Data Loading and Validation
+# How the System Works
 
-* Reads the CSV file  
-* Checks if required columns exist  
-* Ensures distance is numeric and non-negative  
-* Validates priority values  
+## 1. Data Loading and Validation
 
-If any issue is found, the system stops with an error message.
+The system first loads the CSV file and validates the data:
 
+* Checks if file exists
+* Checks required columns
+* Ensures distance is numeric
+* Ensures distance is non-negative
+* Validates priority values
+* Stops execution if invalid data is found
 
-### 2. Exploratory Data Analysis (EDA)
+This ensures the data is clean before optimization.
 
-Before applying algorithms, the dataset is analyzed to understand distribution, statistics, and priority patterns.
+---
 
-This includes:
-* Summary statistics of distance values  
-* Distribution of delivery priorities  
-* Identifying data balance and trends  
+## 2. Exploratory Data Analysis (EDA)
 
+Before applying algorithms, the dataset is analyzed to understand its structure.
 
-### 3. Data Preprocessing
+EDA includes:
 
-* Converts priority into numeric values:
-  * High → 3  
-  * Medium → 2  
-  * Low → 1  
+* Summary statistics of distances
+* Priority distribution
+* Dataset characteristics
 
-* Sorts deliveries by:
-  * Priority (highest first)  
-  * Distance (shortest first)  
+This helps in understanding:
 
-This step ensures that high-priority and shorter-distance deliveries are handled first during allocation.
+* Average delivery distance
+* Distribution of delivery priorities
+* Data balance
+* Delivery workload patterns
 
-### 4. Algorithms Used
+This step is important because in decision analytics, **data understanding comes before decision modeling**.
 
-#### Greedy Algorithm (Load Balancing)
+---
 
-Assigns each delivery to the agent with the lowest current workload.
+## 3. Data Preprocessing
 
-* Fast and efficient
-* Works well for most cases
-* May not always give the best balance
+Priority values are converted into numeric values:
 
+| Priority | Value |
+| -------- | ----- |
+| High     | 3     |
+| Medium   | 2     |
+| Low      | 1     |
 
-#### Round Robin
+Then deliveries are sorted by:
 
-Assigns deliveries in a fixed order:
+1. Priority (High first)
+2. Distance (Shorter distance first)
 
+This ensures:
+
+* High priority deliveries are handled first
+* Short distance deliveries are scheduled earlier
+* Improves efficiency of assignment algorithms
+
+---
+
+# Algorithms Used
+
+The system implements multiple algorithms to assign deliveries and compares their performance.
+
+## 1. Greedy Algorithm (Load Balancing)
+
+**Logic:**
+Each delivery is assigned to the agent with the lowest current workload.
+
+**Advantages:**
+
+* Very fast
+* Low memory usage
+* Works well for large datasets
+* Simple implementation
+
+**Disadvantages:**
+
+* Does not always produce optimal balance
+* Makes local decisions instead of global optimization
+
+**When to use Greedy:**
+
+* Large datasets
+* Real-time delivery systems
+* When speed is more important than perfect balance
+* Limited memory systems
+
+---
+
+## 2. Round Robin Algorithm
+
+**Logic:**
+Deliveries are assigned sequentially:
 A1 → A2 → A3 → repeat
 
-* Simple approach
-* Ensures equal number of tasks
-* Does not consider distance, so balance may be poor
+**Advantages:**
 
+* Very simple
+* Equal number of tasks per agent
+* Very fast execution
 
+**Disadvantages:**
 
-#### Dynamic Programming (Approximate)
+* Does not consider distance
+* Workload may be very unbalanced
+* Not suitable for optimization problems
 
-Attempts to split deliveries into groups with nearly equal total distance.
+**When to use Round Robin:**
 
-* Produces better balanced results
+* When tasks are equal size
+* CPU scheduling
+* Equal task distribution problems
+
+---
+
+## 3. Dynamic Programming Algorithm
+
+**Logic:**
+Attempts to divide deliveries into groups where total distance is close to one-third of total distance.
+
+**Advantages:**
+
+* Better balance than Greedy
+* Uses optimization approach
+* Good for medium sized datasets
+
+**Disadvantages:**
+
 * Uses more memory
-* Slower compared to greedy
+* Slower than Greedy
+* Approximate solution
 
-## Performance Evaluation
+**When to use Dynamic Programming:**
 
-Each algorithm is evaluated using three factors:
+* Medium sized datasets
+* Optimization problems
+* Subset partitioning problems
 
-1. Maximum distance assigned to any agent (load balance)
-2. Execution time
-3. Memory usage
+---
 
+## 4. Backtracking Algorithm (Best Algorithm)
 
-### Scoring Method
+**Logic:**
+Backtracking explores all possible delivery assignment combinations and selects the distribution that minimizes the maximum workload among agents.
 
-A weighted score is used to select the best algorithm:
+**Advantages:**
 
-Score =
-(Max Distance × 0.6) +
-(Execution Time × 1000 × 0.3) +
-(Memory × 0.05)
+* Produces optimal or near optimal solution
+* Most balanced workload distribution
+* Best for small datasets
+* Optimal decision solution
 
-Lower score indicates better performance. Higher weight is given to load balancing because minimizing maximum distance is the primary goal.
+**Disadvantages:**
 
+* Slow for large datasets
+* High memory usage
+* Not scalable for very large problems
 
+**When to use Backtracking:**
 
-## Output
+* Small datasets
+* Optimal scheduling problems
+* Resource allocation optimization
+* Strategic planning problems
 
-The system generates a delivery plan with:
-
-* Agent assignment
-* Order of deliveries
-* Distance for each delivery
-* Cumulative distance
-* Total distance per agent
-
-The output can also be downloaded as a CSV file.
-
-
-
-## Visualization
-
-The system displays charts showing how deliveries are distributed among agents. This helps in visually understanding load balancing.
-
-
-
-## Example Result
-
-Based on the sample input:
-
-* Greedy gives fast results but slightly uneven distribution
-* Round Robin performs poorly in balancing
-* Dynamic Programming provides the best balance
-
-Therefore, the system selects Dynamic Programming as the best algorithm.
-
-
-
-## Edge Cases Handled
-
-The system handles the following cases:
-
-* Missing input file
-* Empty dataset
-* Missing or incorrect columns
-* Invalid priority values
-* Non-numeric distance values
-* Negative distances
-
-
-
-## Technologies Used
-
-* Python
-* Streamlit
-* Pandas
-* Matplotlib
-
-
-
-## How to Run
-
-Install required libraries:
-
-pip install streamlit pandas matplotlib
-
-Run the application:
-
-streamlit run main.py
-
-# Dashboard
+## Dashboard
 
 ![alt text](image-6.png)
 * This section presents the **Exploratory Data Analysis (EDA)** of the input dataset to understand its structure and characteristics before applying optimization algorithms.
@@ -243,29 +276,182 @@ This visualization shows how the **Greedy (load balancing) algorithm** distribut
 
 * Since Dynamic Programming focuses on minimizing the difference in workload between agents, it produces a more optimized distribution, but it uses more memory and is slightly more complex than simpler approaches like Greedy.
 
+![alt text](image-7.png)
+* This visualization shows how the **Backtracking algorithm** distributes deliveries among the three agents.
+
+* Each horizontal bar (A1, A2, A3) represents an agent, and the colored segments inside it show the deliveries assigned to that agent along with their distances. Unlike Greedy and Round Robin, the Backtracking algorithm explores multiple possible combinations of delivery assignments and selects the distribution that minimizes the maximum workload among agents.
+
+* The total distance handled by each agent is: A1 = 51, A2 = 50, A3 = 50, where A1 has the highest workload (51), which becomes the max distance.
+
+* Since the Backtracking approach tries different combinations to achieve the most balanced distribution, it produces a very evenly balanced workload compared to other methods. However, this method takes more execution time and memory because it checks many possible assignments before selecting the best one. This makes it more optimal in terms of workload balance but slower compared to Greedy and Round Robin.
+
+![alt text](image-8.png)
 ![alt text](image-5.png)
-* This output shows the final result of the system after evaluating all three algorithms and selecting the best one.
+The Backtracking algorithm is selected as the best approach because it produces the most balanced distribution of workload among the three agents. It explores different assignment combinations and minimizes the difference in total distance handled by each agent. As a result, all agents have nearly equal workloads, making the delivery plan more efficient and fair compared to other algorithms.
 
-* The system has identified **Dynamic Programming** as the best algorithm because it produces the most balanced distribution of total distance among the three agents. In the delivery plan, Agent A1 handles 50, A2 handles 62, and A3 handles 39. Although A2 has the highest load, the overall difference between agents is smaller compared to other methods, making it more optimized.
+The algorithm selection was based on the problem objective, dataset size, and performance metrics. Since the main objective is to balance workload among agents and the dataset size is small, an optimal solution approach was preferred over faster heuristic methods. Backtracking explores multiple assignment combinations and produces the most balanced workload distribution. Therefore, considering workload balance, dataset size, execution time, and memory usage, Backtracking was selected as the best algorithm for this delivery optimization problem.
 
-* The delivery plan table clearly shows how each location is assigned step-by-step to agents, including cumulative distance tracking. The performance comparison chart further supports this decision, where Dynamic Programming has the lowest score, indicating better balance and efficiency despite slightly higher memory usage.
+# Decision Criteria for Selecting Best Algorithm
 
-## When to Use Which Algorithm
+The best algorithm was selected based on three performance metrics:
 
-- Use Greedy when speed is important and slight imbalance is acceptable
-- Use Dynamic Programming when better load balancing is required
-- Avoid Round Robin when distance based balancing is critical
+1. Workload Imbalance
+   Difference between maximum and minimum total distance among agents
 
-## Conclusion
+2. Execution Time
+   Time taken by algorithm
 
-This project demonstrates how different algorithmic approaches can be applied to a real-world delivery optimization problem. By comparing multiple strategies using performance metrics, the system automatically selects the most suitable algorithm.
+3. Memory Usage
+   Memory consumed during execution
 
-Dynamic Programming produces the most balanced distribution of workload, making it the preferred choice for optimization-focused scenarios. It minimizes the difference in total distance among agents, which is the primary objective of this problem.
+Since the main objective is balanced workload distribution, **workload imbalance is given highest importance**.
 
-However, the choice of algorithm also depends on the size and nature of the dataset.
+---
 
-For smaller datasets, Dynamic Programming is effective because it can explore combinations and achieve near optimal balancing. In this project, since the dataset is relatively small, it provides the best result.
+# Decision Scoring Model
 
-For larger datasets, Dynamic Programming becomes computationally expensive in terms of time and memory. In such cases, the Greedy approach is more practical. It runs faster, uses minimal memory, and still produces reasonably balanced results, making it suitable for real time or large scale delivery systems.
+A weighted scoring model was used to compare algorithms.
 
-Therefore, Dynamic Programming is preferred for accuracy, while Greedy is preferred for scalability and performance in real world applications.
+## Scoring Formula
+
+```
+Score =
+(Imbalance × 0.7) +
+(Time × 1000 × 0.2) +
+(Memory × 0.1)
+```
+
+## Reason for Weight Selection
+
+| Metric             | Weight | Reason                              |
+| ------------------ | ------ | ----------------------------------- |
+| Workload Imbalance | 70%    | Main objective is balanced workload |
+| Execution Time     | 20%    | Performance matters but not primary |
+| Memory Usage       | 10%    | Less important for small dataset    |
+
+Lower score indicates better algorithm.
+
+This is a **multi-criteria decision model** used in decision analytics.
+
+
+
+# How the Final Decision Was Made
+
+The decision process followed these steps:
+
+1. Input data was cleaned and sorted by priority and distance.
+2. Four algorithms were applied:
+
+   * Greedy
+   * Round Robin
+   * Dynamic Programming
+   * Backtracking
+3. For each algorithm, the following were measured:
+
+   * Total distance per agent
+   * Workload imbalance
+   * Execution time
+   * Memory usage
+4. A weighted score was calculated for each algorithm.
+5. The algorithm with the lowest score was selected as the best algorithm.
+
+This makes the decision **data-driven and objective**.
+
+
+
+# Why Backtracking Was Selected as Best Algorithm
+
+Backtracking was selected because:
+
+* It produced the lowest workload imbalance
+* It provided the most balanced workload distribution
+* It minimized maximum agent distance
+* The dataset size is small, so execution time is acceptable
+* Decision quality is more important than execution speed
+
+Although Backtracking uses more time and memory, the dataset is small and the execution time difference is very small. Therefore, the improvement in workload balance is more important.
+
+Hence, **Backtracking is the best algorithm for this problem**.
+
+
+
+# Algorithm Selection Summary
+
+| Algorithm           | Speed     | Memory   | Balance | Best Use Case                 |
+| ------------------- | --------- | -------- | ------- | ----------------------------- |
+| Greedy              | Fast      | Low      | Medium  | Large datasets                |
+| Round Robin         | Very Fast | Very Low | Poor    | Equal task distribution       |
+| Dynamic Programming | Medium    | Medium   | Good    | Medium datasets               |
+| Backtracking        | Slow      | High     | Best    | Small datasets / Optimization |
+
+
+
+# Output Generated
+
+The system generates:
+
+* Delivery assignment per agent
+* Order of deliveries
+* Distance per delivery
+* Cumulative distance
+* Total distance per agent
+* Output CSV file for download
+
+
+
+# Edge Cases Handled
+
+The system handles the following edge cases:
+
+* Missing input file
+* Empty dataset
+* Missing columns
+* Invalid priority values
+* Non-numeric distances
+* Negative distances
+* Large dataset (Backtracking skipped automatically)
+
+
+
+# Technologies Used
+
+* Python
+* Streamlit
+* Pandas
+* Matplotlib
+
+
+
+# How to Run the Project
+
+Install dependencies:
+
+```
+pip install streamlit pandas matplotlib
+```
+
+Run the application:
+
+```
+streamlit run main.py
+```
+
+
+
+# Conclusion
+
+This project demonstrates how decision analytics and optimization algorithms can be applied to a logistics delivery optimization problem. Multiple algorithms were implemented and compared using workload imbalance, execution time, and memory usage.
+
+The algorithm selection was not based only on execution speed, but on decision quality. Since the primary objective was balanced workload distribution, the algorithm that minimized workload imbalance was selected using a weighted decision scoring model.
+
+Among all algorithms, **Backtracking produced the most balanced workload distribution and achieved the best overall score**, making it the optimal solution for this delivery optimization problem.
+
+However, algorithm selection depends on the problem size and scenario:
+
+* Backtracking is best for small datasets and optimal decisions
+* Dynamic Programming is suitable for medium datasets
+* Greedy is suitable for large datasets and real-time systems
+* Round Robin is suitable when tasks are equal and fairness is required
+
+This reflects real world decision analytics where multiple models are evaluated before selecting the best decision strategy.
+
