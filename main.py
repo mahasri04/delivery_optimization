@@ -8,6 +8,7 @@ st.set_page_config(page_title="Delivery Optimization", layout="wide")
 st.title("Delivery Optimization System")
 
 
+# Load data
 try:
     data = pd.read_csv("input.csv")
 except:
@@ -19,6 +20,7 @@ if data.empty:
     st.stop()
 
 
+# Validate columns
 required_columns = ["LocationID", "Distance", "Priority"]
 
 for col in required_columns:
@@ -26,7 +28,8 @@ for col in required_columns:
         st.error("CSV must contain LocationID, Distance, and Priority")
         st.stop()
 
-# Clean data
+
+# Data cleaning
 data["Priority"] = data["Priority"].str.capitalize()
 
 priority_map = {"High": 3, "Medium": 2, "Low": 1}
@@ -46,14 +49,32 @@ if (data["Distance"] < 0).any():
     st.error("Distance cannot be negative")
     st.stop()
 
-# Sort data
+
+# EDA
+st.subheader("Exploratory Data Analysis")
+
+col1, col2 = st.columns(2)
+
+with col1:
+    st.write("Basic Statistics")
+    st.write(data.describe())
+
+with col2:
+    st.write("Priority Distribution")
+    fig, ax = plt.subplots(figsize=(4, 3))
+    data["Priority"].value_counts().plot(kind="bar", ax=ax)
+    ax.set_title("Priority Count")
+    st.pyplot(fig)
+
+
+# Sorting
 data = data.sort_values(by=["PriorityValue", "Distance"], ascending=[False, True])
 
-st.subheader("Input Data")
+st.subheader("Sorted Input Data")
 st.dataframe(data)
 
-#GREEDY(load balancing)
 
+# Algorithms
 def greedy_algorithm(df):
     agents = {"A1": [], "A2": [], "A3": []}
     totals = {"A1": 0, "A2": 0, "A3": 0}
@@ -65,25 +86,23 @@ def greedy_algorithm(df):
 
     return agents, totals
 
-#Round Robin
 
 def round_robin_algorithm(df):
     agents = {"A1": [], "A2": [], "A3": []}
     totals = {"A1": 0, "A2": 0, "A3": 0}
     agent_list = ["A1", "A2", "A3"]
 
-    i = 0
+    index = 0
     for _, row in df.iterrows():
-        agent = agent_list[i % 3]
+        agent = agent_list[index % 3]
         agents[agent].append((row["LocationID"], row["Distance"]))
         totals[agent] += row["Distance"]
-        i += 1
+        index += 1
 
     return agents, totals
 
-# Dynamic Programming
 
-def dp_algorithm(df):
+def dynamic_programming_algorithm(df):
     distances = list(df["Distance"])
     locations = list(df["LocationID"])
 
@@ -124,20 +143,16 @@ def dp_algorithm(df):
     return agents, totals
 
 
+# Visualization
 def plot_chart(agents, title):
-    fig, ax = plt.subplots(figsize=(5, 2)) 
+    fig, ax = plt.subplots(figsize=(5, 2))
 
-    i = 0
-    for agent in agents:
+    for i, agent in enumerate(agents):
         start = 0
-        tasks = agents[agent]
-
-        for loc, dist in tasks:
+        for loc, dist in agents[agent]:
             ax.barh(i, dist, left=start)
             ax.text(start + dist / 2, i, loc, ha='center', va='center', fontsize=6)
             start += dist
-
-        i += 1
 
     ax.set_yticks([0, 1, 2])
     ax.set_yticklabels(["A1", "A2", "A3"])
@@ -147,6 +162,7 @@ def plot_chart(agents, title):
     st.pyplot(fig)
 
 
+# Output creation
 def create_output(agents):
     rows = []
 
@@ -171,9 +187,8 @@ def create_output(agents):
     return pd.DataFrame(rows)
 
 
-# PERFORMANCE EVALUATION
-
-def evaluate(name, func, df):
+# Evaluation
+def evaluate_algorithm(name, func, df):
     start = time.time()
     tracemalloc.start()
 
@@ -193,42 +208,37 @@ def evaluate(name, func, df):
     }
 
 
-
 algorithms = {
     "Greedy": greedy_algorithm,
     "Round Robin": round_robin_algorithm,
-    "Dynamic Programming": dp_algorithm
+    "Dynamic Programming": dynamic_programming_algorithm
 }
 
 results = []
-for name in algorithms:
-    results.append(evaluate(name, algorithms[name], data))
+for name, func in algorithms.items():
+    results.append(evaluate_algorithm(name, func, data))
 
 
-st.markdown(" Algorithm Performance Dashboard")
+st.subheader("Algorithm Performance")
 
 scores = {}
 
 for result in results:
-
-    st.markdown(f" 🔹 {result['name']}")
+    st.markdown(f"{result['name']}")
 
     col1, col2, col3 = st.columns(3)
-
     col1.metric("Max Distance", result["max_distance"])
-    col2.metric("Execution Time (sec)", f"{result['time']:.6f}")
-    col3.metric("Memory (KB)", f"{result['memory']:.2f}")
+    col2.metric("Execution Time", f"{result['time']:.6f} sec")
+    col3.metric("Memory Usage", f"{result['memory']:.2f} KB")
 
     st.write("Total Distance per Agent:")
     st.json(result["totals"])
 
-  
     col_left, col_right = st.columns([1, 2])
 
     with col_right:
         plot_chart(result["agents"], result["name"])
 
-    # Score calculation
     score = (
         result["max_distance"] * 0.6 +
         result["time"] * 1000 * 0.3 +
@@ -238,23 +248,21 @@ for result in results:
     scores[result["name"]] = score
 
 
-# BEST ALGORITHM
+best_algorithm = min(scores, key=scores.get)
 
-best = min(scores, key=scores.get)
+st.subheader("Best Algorithm")
+st.success(f"{best_algorithm} gives the best result")
 
-st.subheader(" Best Algorithm")
-st.success(best + " gives the best result")
 
-# Output
 for result in results:
-    if result["name"] == best:
+    if result["name"] == best_algorithm:
         output = create_output(result["agents"])
 
         st.subheader("Delivery Plan")
         st.dataframe(output)
 
         st.download_button(
-            "⬇ Download CSV",
+            "Download Output CSV",
             output.to_csv(index=False),
             file_name="output.csv"
         )
@@ -262,11 +270,11 @@ for result in results:
 
 st.subheader("Performance Comparison")
 
-score_df = pd.DataFrame(list(scores.items()), columns=["Algorithm", "Score"])
+score_df = pd.DataFrame(scores.items(), columns=["Algorithm", "Score"])
 st.bar_chart(score_df.set_index("Algorithm"))
 
 
-st.write("### Methods Used")
-st.write("Greedy --> Assigns delivery to least loaded agent")
-st.write("Round Robin --> Equal sequential distribution")
-st.write("Dynamic Programming --> Balanced subset optimization")
+st.subheader("Methods Used")
+st.write("Greedy: Assigns delivery to least loaded agent")
+st.write("Round Robin: Equal sequential distribution")
+st.write("Dynamic Programming: Balanced subset optimization")
